@@ -1,4 +1,4 @@
-import google.generativeai as genai
+from google import genai   # ✅ UPDATED
 from dotenv import load_dotenv
 import os
 import json
@@ -8,11 +8,11 @@ import json
 # -----------------------------
 load_dotenv()
 
-genai.configure(
+client = genai.Client(   # ✅ UPDATED
     api_key=os.getenv("GEMINI_API_KEY")
 )
 
-model = genai.GenerativeModel("gemini-2.5-flash")
+MODEL_NAME = "gemini-2.5-flash"   # ✅ cleaner
 
 
 # -----------------------------
@@ -62,7 +62,11 @@ Transcript:
 """
 
     try:
-        response = model.generate_content(prompt)
+        response = client.models.generate_content(   # ✅ UPDATED
+            model=MODEL_NAME,
+            contents=prompt
+        )
+
         parsed = safe_json_parse(response.text)
 
         if parsed:
@@ -107,7 +111,7 @@ def merge_summaries(summaries):
 
 
 # -----------------------------
-# FINAL REFINEMENT (VERY IMPORTANT)
+# FINAL REFINEMENT
 # -----------------------------
 def refine_summary(merged_summary):
     prompt = f"""
@@ -130,7 +134,11 @@ Data:
 """
 
     try:
-        response = model.generate_content(prompt)
+        response = client.models.generate_content(   # ✅ UPDATED
+            model=MODEL_NAME,
+            contents=prompt
+        )
+
         parsed = safe_json_parse(response.text)
 
         if parsed:
