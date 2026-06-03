@@ -25,17 +25,17 @@ if "error" not in st.session_state:
 # PAGE 1: UPLOAD PAGE
 # -----------------------------
 def upload_page():
-    st.title("📤 Upload Meeting Recording")
+    st.title("Upload Meeting Recording")
 
     uploaded_file = st.file_uploader(
         "Choose your meeting file",
-        type=["mp3", "wav", "mp4"]
+        type=["mp3", "wav", "mp4",  "txt"]
     )
 
     if uploaded_file:
         st.success("File uploaded successfully!")
 
-    if st.button("🚀 Generate Summary"):
+    if st.button("Generate Summary"):
         if uploaded_file is None:
             st.warning("Please upload a file first!")
             return
@@ -70,7 +70,7 @@ def upload_page():
 # PAGE 2: RESULTS PAGE
 # -----------------------------
 def results_page():
-    st.title("📊 Meeting Summary")
+    st.title("Meeting Summary")
 
     result = st.session_state.result
 
@@ -79,7 +79,7 @@ def results_page():
         return
 
     # Back button
-    if st.button("⬅️ Back"):
+    if st.button("Back"):
         st.session_state.page = "upload"
         st.session_state.result = None
         st.rerun()
@@ -119,7 +119,7 @@ def results_page():
     st.divider()
 
     st.download_button(
-        "⬇️ Download Summary (JSON)",
+        "Download Summary (JSON)",
         data=json.dumps(result, indent=4),
         file_name="meeting_summary.json",
         mime="application/json"

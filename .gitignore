@@ -1,8 +1,15 @@
 venv/
-__pycache__/
 .env
+__pycache__/
 *.pyc
 *.pyo
 *.pyd
+transcripts/
+summaries/
+sample.mp4
+test.txt
 .DS_Store
-*.log
+Thumbs.db
+.vscode/
+.streamlit/secrets.toml
+ffmpeg/
