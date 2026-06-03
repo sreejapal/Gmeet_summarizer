@@ -3,33 +3,66 @@ from summarizer import generate_summary
 import json
 import os
 
+
 def process_video(video_path):
     transcript = transcribe_video(video_path)
+
     result = generate_summary(transcript)
+
     save_summary(result)
+
     return result
+
 
 def process_transcript_file(transcript_file):
-    with open(transcript_file, "r", encoding="utf-8") as f:
+
+    with open(
+        transcript_file,
+        "r",
+        encoding="utf-8"
+    ) as f:
+
         transcript = f.read()
+
     result = generate_summary(transcript)
+
     save_summary(result)
+
     return result
 
+
 def process_transcript_text(transcript):
+
     result = generate_summary(transcript)
+
     save_summary(result)
-    return result   
+
+    return result
+
 
 def save_summary(result):
+
     try:
-        os.makedirs("summaries", exist_ok=True)
+
+        os.makedirs(
+            "summaries",
+            exist_ok=True
+        )
+
         with open(
             "summaries/summary.json",
             "w",
             encoding="utf-8"
         ) as f:
-            json.dump(result, f, indent=4)
+
+            json.dump(
+                result,
+                f,
+                indent=4
+            )
+
     except Exception as e:
-        print(f"Error saving summary: {e}")
-        return
+
+        print(
+            f"Error saving summary: {e}"
+        )

@@ -2,6 +2,10 @@ import streamlit as st
 import json
 import os
 from processor import process_video
+from database import save_meeting
+from database import init_db
+
+init_db()
 
 # -----------------------------
 # PAGE CONFIG
@@ -20,6 +24,9 @@ if "result" not in st.session_state:
 if "error" not in st.session_state:
     st.session_state.error = None
 
+if "filename" not in st.session_state:
+    st.session_state.filename = None
+
 
 # -----------------------------
 # PAGE 1: UPLOAD PAGE
@@ -34,6 +41,7 @@ def upload_page():
 
     if uploaded_file:
         st.success("File uploaded successfully!")
+        st.session_state.filename = uploaded_file.name
 
     if st.button("Generate Summary"):
         if uploaded_file is None:
@@ -118,13 +126,29 @@ def results_page():
     # Download as JSON
     st.divider()
 
-    st.download_button(
-        "Download Summary (JSON)",
-        data=json.dumps(result, indent=4),
-        file_name="meeting_summary.json",
-        mime="application/json"
-    )
+    col1, col2, col3 = st.columns([1, 1, 4])
 
+    with col1:
+        st.download_button(
+            "Download Summary (JSON)",
+            data=json.dumps(result, indent=4),
+            file_name="meeting_summary.json",
+            mime="application/json"
+        )
+
+    with col2:
+        if st.button("Save Meeting"):
+            if result.get("overview"):
+
+                save_meeting(
+                    st.session_state.filename,
+                    result
+                )
+
+                st.success("Meeting saved successfully!")
+
+            else:
+                st.error("Cannot save empty summary.")
 
 # -----------------------------
 # ROUTING

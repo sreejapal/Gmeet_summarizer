@@ -13,3 +13,4 @@ Thumbs.db
 .vscode/
 .streamlit/secrets.toml
 ffmpeg/
+meetings.db

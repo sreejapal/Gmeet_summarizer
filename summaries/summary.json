@@ -1,37 +1,88 @@
 {
-    "overview": "A front-end only college discovery platform, 'College Finder', built with Next.js 13, React 18, HTML, and CSSv4. Key features include college listings with search and filters, detailed college pages (sections, placement stats, reviews), side-by-side comparison (up to three colleges), saving colleges and comparisons, and a full client-side login/signup flow with local storage persistence. The platform requires no backend, API keys, or configuration, designed for simple `npm install` and `npm render`.",
+    "overview": "This walkthrough describes 'College Finder', a front-end only college discovery platform built with Next.js 13, React 18, HTMX, and Tailwind CSS v4. It covers architecture, design decisions, trade-offs, and edge case handling. Key features include college listings with search/filters, detailed college pages (sections, placements, reviews), side-by-side comparison of up to three colleges, saving colleges and comparisons, and a full client-side login/signup flow with local storage persistence. The project emphasizes a strict separation between UI primitives and domain components, efficient state management using Zustand, and a thin page component pattern. ",
     "discussion_points": [
-        "**Project Architecture**: Strict architectural separation was maintained, with domain components (e.g., college, detail) distinct from UI components (e.g., button, card). UI components are pure, prop-driven primitives using Tailwind, ensuring reusability and allowing isolated visual design changes without affecting feature files.",
-        "**State Management (Zustand vs. React Context)**: Zustand was chosen over React Context for `auth`, `compare`, and `save` stores due to its performance benefits. Zustand allows components to subscribe to specific state slices, triggering re-renders only when those specific values change, unlike React Context's broader re-renders for all subscribers on any change.",
-        "**Persistent State**: Zustand's persistent middleware automatically serializes store state (e.g., saved colleges) to local storage for persistence across refreshes. The trade-off of synchronous local storage potentially blocking the main thread during hydration was noted, suggesting IndexedDB for large production datasets.",
-        "**Hooks and Page Logic**: All listing page logic (filtering, sorting, pagination, 'view more') is encapsulated in a single custom hook (`useColleges`), adhering to the 'pages should be thin' principle where page components act as pure coordinators.",
-        "**Search Debouncing and Memoization**: Implemented 250ms search input debouncing using a custom `useDebounce` hook to prevent excessive filter re-computations. Filter results are memoized using `useMemo` (depending only on filters, search, and sort key) to optimize performance and avoid unnecessary re-computation.",
-        "**Filtering Edge Case**: An edge case where changing filters could lead to an empty grid if the user was on a page beyond the new filter results was addressed by automatically resetting the search to page 1.",
-        "**Compare Feature Implementation**: The compare feature uses a `toComparableCollegeMapper` to transform partial listing data into detailed comparison data. Comparison metrics are defined as extensible data objects (with `label`, `getValue`, and optional `highlightAction`), allowing easy addition of new metrics. A hardcoded comparison limit in the compare bar was centralized for maintainability.",
-        "**CSS and Design System**: The design system uses global CSS custom properties (e.g., `--sapphire`) referenced via Tailwind's arbitrary values (e.g., `bg-[--sapphire]`). A development bug where `bg-sapphire` generated invalid CSS was identified and fixed by a script. Buttons were refactored to use concrete Tailwind classes to reduce indirection.",
-        "**Accessibility (A11y) Features**: Implemented accessibility features including a focus trap for modals, `aria-pressed` and `aria-label` for Save/Compare buttons to convey their toggle state and provide full context, and `aria-current` on active section navigation for detail pages, driven by an Intersection Observer."
+        "Project architecture and component organization (UI vs. Domain components)",
+        "State management using Zustand vs. React Context for global persistence",
+        "Trade-offs regarding local storage for persistence vs. IndexedDB for larger datasets",
+        "Logic encapsulation in hooks (e.g., `useColleges` for filtering, sorting, pagination)",
+        "Search debouncing implementation and optimization using `useDebounce` hook",
+        "Design and implementation details of the college comparison feature (data mapping, dynamic row rendering)",
+        "Handling edge cases like compare bar placeholders and filter page reset",
+        "CSS custom properties with Tailwind CSS and the resolution of invalid CSS issues",
+        "Accessibility features: modal focus trap, ARIA attributes for buttons (`aria-pressed`, `aria-label`), and `aria-current` for active sections with Intersection Observer.",
+        "Trade-offs for a production context: lack of server state management, client-side authentication, and absence of a test suite."
     ],
-    "action_items": [
-        "Introduce a server state management library (e.g., React Query, SWR) for a real product, while maintaining the `useColleges` hook interface.",
-        "Replace local storage persistence with HTTP-only cookies and server-side validation for all state in a production environment to enhance security.",
-        "Develop a comprehensive test suite, including Cypress E2E and Vitest unit tests, prioritizing this over feature development in future projects, leveraging the existing testable architecture."
-    ],
+    "action_items": [],
     "decisions": [
-        "Project components are strictly separated into UI (pure primitives) and domain components (compose primitives, read from stores).",
-        "Zustand was chosen over React Context for `auth`, `compare`, and `save` stores due to its performance benefits with selective state subscriptions.",
-        "Zustand's persistent middleware was implemented for automatic local storage serialization and re-hydration of store data.",
-        "All shared project interfaces were consolidated into a single `college.ts` file for clean separation.",
-        "All listing page logic (filtering, sorting, pagination) was encapsulated within a single custom hook, making page components thin coordinators.",
-        "Search input was debounced at 250ms using a custom `useDebounce` hook for performance optimization.",
-        "Filter results were memoized using `useMemo` to prevent unnecessary re-computations.",
-        "Logic was implemented to reset the search to page 1 when filters are changed to prevent empty result grids.",
-        "The compare feature was designed to map additional data only when needed for comparison and to represent comparison metrics as extensible data objects.",
-        "CSS custom property usage with Tailwind's arbitrary values (e.g., `bg-[--sapphire]`) was corrected after identifying invalid CSS generation from a simplified syntax.",
-        "CSS files for buttons were replaced with concrete Tailwind classes to reduce indirection for critical interactive elements.",
-        "A focus trap mechanism for modals was implemented to improve keyboard navigation and screen reader experience.",
-        "`aria-pressed` and `aria-label` were used on save and compare buttons to convey their toggle state and provide full context to assistive technologies.",
-        "`aria-current` was employed on active section navigation buttons, driven by an Intersection Observer, to indicate the currently viewed section."
+        {
+            "decision": "Separation of UI primitives and domain components",
+            "rationale": "Allows changing the entire visual design of a button without touching feature files. UI components are pure and reusable across projects, domain components compose primitives and read from system stores."
+        },
+        {
+            "decision": "Use of Zustand over React Context for global persistence state (auth, compare, save stores)",
+            "rationale": "Zustand allows components to subscribe to specific slices of state, preventing unnecessary re-renders for other subscribers when unrelated values change. Context would cause all subscribers to re-render on any change."
+        },
+        {
+            "decision": "Use of Zustand's persistent middleware with local storage",
+            "rationale": "Automatically serializes state to local storage and re-hydrates on page load, simplifying persistence without manual JSON handling. Suitable for the project's scope."
+        },
+        {
+            "decision": "Consolidation of all listing page logic into a single hook (`useColleges`)",
+            "rationale": "Keeps page components thin, acting as pure coordinators that feed state and process callbacks. Improves maintainability and testability."
+        },
+        {
+            "decision": "Debouncing search input at 250 milliseconds with a custom `useDebounce` hook",
+            "rationale": "Prevents excessive filter computation on every keystroke, ensuring performance scales for larger datasets (e.g., 2000 colleges)."
+        },
+        {
+            "decision": "Using `useMemo` for filter results dependent only on filters, search, and sort key",
+            "rationale": "Optimizes performance by recomputing filter results only when relevant dependencies change, avoiding re-computation on view mode or page changes."
+        },
+        {
+            "decision": "Resetting search to page 1 when filters change",
+            "rationale": "Prevents empty grids with no feedback when applying filters that yield fewer results than the current page offset."
+        },
+        {
+            "decision": "Mapping partial college data for listing page and full data for comparison",
+            "rationale": "Listing page loads only necessary data; comparison page needs additional fields (placement rate, average package, etc.). Ensures efficiency."
+        },
+        {
+            "decision": "Defining comparison data as an array of objects (`rows`) with `label`, `getValue`, and optional `highlight` functions",
+            "rationale": "Allows dynamic rendering of comparison tables. Adding new comparison metrics is a simple object addition, requiring no JSX changes. `getBestIDX` function finds winning columns."
+        },
+        {
+            "decision": "Centralizing the `MAX_COMPARISON` constant (e.g., 3)",
+            "rationale": "Ensures consistency across the UI (e.g., compare bar slots) and prevents hardcoding, fixing bugs where different parts of the UI had conflicting values."
+        },
+        {
+            "decision": "Using CSS custom properties (`--sapphire`, `--cloud-radius`) referenced by Tailwind's arbitrary values (`bg-[--sapphire]`)",
+            "rationale": "Provides a design system with single-source-of-truth for design tokens, ensuring consistent styling."
+        },
+        {
+            "decision": "Replacing CSS custom property references with concrete Tailwind classes for buttons",
+            "rationale": "Reduces indirection for critical interactive elements, ensuring maximum control and least potential for unexpected styling issues."
+        },
+        {
+            "decision": "Implementing a focus trap for modals",
+            "rationale": "Enhances accessibility by restricting keyboard focus within the modal dialogue, preventing screen readers and keyboard users from interacting with elements behind the modal."
+        },
+        {
+            "decision": "Using `aria-pressed` for save/compare buttons",
+            "rationale": "Communicates toggle state to assistive technology, indicating that the button changes state rather than just performs an action."
+        },
+        {
+            "decision": "Using `aria-label` with the full college name for save/compare buttons",
+            "rationale": "Provides context to screen readers (e.g., 'Save MIT' instead of just 'Save')."
+        },
+        {
+            "decision": "Using `aria-current` on the active section button on the detail page, driven by an Intersection Observer",
+            "rationale": "Highlights the active section for accessibility and user experience. The observer picks the topmost intersecting section to handle fast scrolls."
+        }
     ],
     "task_assignments": [],
-    "next_steps": []
+    "next_steps": [
+        "Introduce server state management (e.g., React Query or SWR) for a real product instead of static files.",
+        "Migrate authentication persistence from local storage to HTTP-only cookies with server validation for production security.",
+        "Add a comprehensive test suite (unit, E2E) leveraging the existing testable architecture (pure functions, clear store interfaces, stateless components)."
+    ]
 }
