@@ -1,4 +1,7 @@
 import streamlit as st
+import json
+import os
+from processor import process_video
 
 # -----------------------------
 # PAGE CONFIG
@@ -13,6 +16,9 @@ if "page" not in st.session_state:
 
 if "result" not in st.session_state:
     st.session_state.result = None
+
+if "error" not in st.session_state:
+    st.session_state.error = None
 
 
 # -----------------------------
@@ -34,43 +40,30 @@ def upload_page():
             st.warning("Please upload a file first!")
             return
 
-        # 🔄 Simulate processing
-        with st.spinner("Processing meeting..."):
-            
-            # -----------------------------
-            # PLACEHOLDER DATA (YOUR JSON)
-            # -----------------------------
-            result = {
-                "overview": "This meeting focused on project progress, deadlines, and team responsibilities.",
-                "discussion_points": [
-                    "Project timeline review",
-                    "Budget constraints",
-                    "Client feedback"
-                ],
-                "action_items": [
-                    "Prepare project report",
-                    "Update client presentation"
-                ],
-                "decisions": [
-                    "Deadline extended by 3 days",
-                    "Adopt new design approach"
-                ],
-                "task_assignments": [
-                    "Rahul → Report preparation",
-                    "Anita → Client communication"
-                ],
-                "next_steps": [
-                    "Conduct follow-up meeting",
-                    "Finalize deliverables"
-                ]
-            }
+        try:
+            with st.spinner("Processing meeting..."):
 
-            # Save to session
-            st.session_state.result = result
+                # Save temp file
+                file_extension = uploaded_file.name.split(".")[-1]
+                temp_file_path = f"temp.{file_extension}"
 
-            # Move to next page
-            st.session_state.page = "results"
-            st.rerun()
+                with open(temp_file_path, "wb") as f:
+                    f.write(uploaded_file.read())
+
+                # Call backend
+                result = process_video(temp_file_path)
+
+                # Save result
+                st.session_state.result = result
+                st.session_state.page = "results"
+
+                # Cleanup temp file
+                os.remove(temp_file_path)
+
+                st.rerun()
+
+        except Exception as e:
+            st.session_state.error = str(e)
 
 
 # -----------------------------
@@ -85,61 +78,67 @@ def results_page():
         st.error("No data found. Go back and upload a file.")
         return
 
-    # 🔙 Back Button
+    # Back button
     if st.button("⬅️ Back"):
         st.session_state.page = "upload"
+        st.session_state.result = None
         st.rerun()
 
     st.divider()
 
-    # -----------------------------
-    # LAYOUT
-    # -----------------------------
     col1, col2 = st.columns(2)
 
-    # LEFT SIDE
+    # LEFT COLUMN
     with col1:
         st.subheader("📄 Meeting Overview")
-        st.write(result["overview"])
+        st.write(result.get("overview", "N/A"))
 
         st.subheader("🔑 Key Discussion Points")
-        for point in result["discussion_points"]:
+        for point in result.get("discussion_points", []):
             st.write(f"• {point}")
 
         st.subheader("✅ Action Items")
-        for item in result["action_items"]:
+        for item in result.get("action_items", []):
             st.write(f"• {item}")
 
-    # RIGHT SIDE
+    # RIGHT COLUMN
     with col2:
         st.subheader("📌 Decisions")
-        for d in result["decisions"]:
+        for d in result.get("decisions", []):
             st.write(f"• {d}")
 
         st.subheader("👥 Task Assignments")
-        for t in result["task_assignments"]:
+        for t in result.get("task_assignments", []):
             st.write(f"• {t}")
 
         st.subheader("➡️ Next Steps")
-        for step in result["next_steps"]:
+        for step in result.get("next_steps", []):
             st.write(f"• {step}")
 
-    # -----------------------------
-    # DOWNLOAD BUTTON
-    # -----------------------------
+    # Download as JSON
     st.divider()
 
     st.download_button(
-        "⬇️ Download Summary",
-        data=str(result),
-        file_name="meeting_summary.txt"
+        "⬇️ Download Summary (JSON)",
+        data=json.dumps(result, indent=4),
+        file_name="meeting_summary.json",
+        mime="application/json"
     )
 
 
 # -----------------------------
-# ROUTING LOGIC
+# ROUTING
 # -----------------------------
 if st.session_state.page == "upload":
     upload_page()
-else:
+
+elif st.session_state.page == "results":
     results_page()
+
+
+# -----------------------------
+# ERROR DISPLAY (SAFE)
+# -----------------------------
+if st.session_state.error:
+    st.error(st.session_state.error)
+    st.session_state.error = None  # prevent infinite loop

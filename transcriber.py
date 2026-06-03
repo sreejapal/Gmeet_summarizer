@@ -5,9 +5,17 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 
 model = whisper.load_model("base").to(device)
 
+
 def transcribe_video(video_path):
-    result = model.transcribe(video_path)
+    try:
+        result = model.transcribe(
+            video_path,
+            fp16=torch.cuda.is_available(),
+            language="en",
+        )
 
-    transcript = result["text"]
+        return result.get("text", "")
 
-    return transcript
+    except Exception as e:
+        print(f"Transcription error: {e}")
+        return ""
