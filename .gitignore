@@ -14,3 +14,4 @@ Thumbs.db
 .streamlit/secrets.toml
 ffmpeg/
 meetings.db
+summaries/
