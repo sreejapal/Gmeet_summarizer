@@ -44,10 +44,6 @@ def save_meeting(filename, result):
     conn.close()
 
 
-if __name__ == "__main__":
-    init_db()
-    print("Database initialized")
-
 def get_all_meetings():
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
@@ -80,3 +76,8 @@ def search_meetings(keyword):
     conn.close()
 
     return rows
+
+
+if __name__ == "__main__":
+    init_db()
+    print("Database initialized")

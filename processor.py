@@ -5,7 +5,14 @@ import os
 
 
 def process_video(video_path):
-    transcript = transcribe_video(video_path)
+    # Route .txt files directly — ffmpeg cannot read them,
+    # which caused transcribe_video() to return "" and all
+    # summary fields to come back empty.
+    if video_path.lower().endswith(".txt"):
+        with open(video_path, "r", encoding="utf-8") as f:
+            transcript = f.read()
+    else:
+        transcript = transcribe_video(video_path)
 
     result = generate_summary(transcript)
 

@@ -74,7 +74,11 @@ def upload_page():
                 # Cleanup temp file
                 os.remove(temp_file_path)
 
-                st.rerun()
+            # ✅ FIXED: rerun OUTSIDE the spinner block so session state
+            # is fully committed before Streamlit re-executes the script.
+            # Calling st.rerun() inside with st.spinner() causes the spinner's
+            # __exit__ to fire after the rerun, which can reset session state.
+            st.rerun()
 
         except Exception as e:
             st.session_state.error = str(e)
@@ -161,7 +165,7 @@ def results_page():
 # PAGE 3: HISTORY PAGE (NEW)
 # -----------------------------
 def history_page():
-    st.title("📜 Meeting History")
+    st.title("Meeting History")
 
     # Back button
     if st.button("⬅ Back"):
