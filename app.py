@@ -4,18 +4,15 @@ import os
 from processor import process_video
 from database import save_meeting
 from database import init_db
-from database import get_all_meetings, search_meetings  # NEW
+from database import get_all_meetings, search_meetings
+from email_sender import send_summary_email
 
 init_db()
 
-# -----------------------------
 # PAGE CONFIG
-# -----------------------------
 st.set_page_config(page_title="Meeting Summarizer", layout="wide")
 
-# -----------------------------
 # SESSION STATE INIT
-# -----------------------------
 if "page" not in st.session_state:
     st.session_state.page = "upload"
 
@@ -29,14 +26,11 @@ if "filename" not in st.session_state:
     st.session_state.filename = None
 
 
-# -----------------------------
 # PAGE 1: UPLOAD PAGE
-# -----------------------------
 def upload_page():
     st.title("Upload Meeting Recording")
 
-    # 🔥 NEW: Go to history
-    if st.button("📜 View Meeting History"):
+    if st.button("View Meeting History"):
         st.session_state.page = "history"
         st.rerun()
 
@@ -74,19 +68,12 @@ def upload_page():
                 # Cleanup temp file
                 os.remove(temp_file_path)
 
-            # ✅ FIXED: rerun OUTSIDE the spinner block so session state
-            # is fully committed before Streamlit re-executes the script.
-            # Calling st.rerun() inside with st.spinner() causes the spinner's
-            # __exit__ to fire after the rerun, which can reset session state.
             st.rerun()
 
         except Exception as e:
             st.session_state.error = str(e)
 
-
-# -----------------------------
 # PAGE 2: RESULTS PAGE
-# -----------------------------
 def results_page():
     st.title("Meeting Summary")
 
@@ -160,10 +147,43 @@ def results_page():
             else:
                 st.error("Cannot save empty summary.")
 
+    st.divider()
 
-# -----------------------------
-# PAGE 3: HISTORY PAGE (NEW)
-# -----------------------------
+    st.subheader("Send summary via Email")
+
+    email = st.text_input(
+        "Recipient Email"
+    )
+
+    if st.button("Send Summary Email"):
+
+        if email:
+
+            try:
+
+                send_summary_email(
+                    email,
+                    result
+                )
+
+                st.success(
+                    "Email sent successfully!"
+                )
+
+            except Exception as e:
+
+                st.error(
+                    f"Failed to send email: {e}"
+                )
+
+        else:
+
+            st.warning(
+                "Please enter an email address."
+            )
+
+
+# PAGE 3: HISTORY PAGE
 def history_page():
     st.title("Meeting History")
 
@@ -174,7 +194,7 @@ def history_page():
 
     st.divider()
 
-    # 🔍 Search
+    #Search
     st.subheader("🔍 Search Meetings")
     search_query = st.text_input("Enter keyword")
 
@@ -187,7 +207,7 @@ def history_page():
         st.info("No meetings found.")
         return
 
-    st.subheader("📂 Saved Meetings")
+    st.subheader("Saved Meetings")
 
     for meeting in meetings:
         meeting_id, filename, created_at, overview, summary_json = meeting
@@ -201,9 +221,7 @@ def history_page():
                 st.json(json.loads(summary_json))
 
 
-# -----------------------------
 # ROUTING
-# -----------------------------
 if st.session_state.page == "upload":
     upload_page()
 
@@ -214,9 +232,7 @@ elif st.session_state.page == "history":
     history_page()
 
 
-# -----------------------------
-# ERROR DISPLAY (SAFE)
-# -----------------------------
+# ERROR DISPLAY
 if st.session_state.error:
     st.error(st.session_state.error)
     st.session_state.error = None
