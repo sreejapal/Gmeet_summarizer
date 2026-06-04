@@ -1,0 +1,42 @@
+Team Weekly Standup Meeting
+
+Date: June 4, 2026
+
+Participants:
+Utkarsh
+Sreeja
+Rahul
+Ananya
+
+Utkarsh: Welcome everyone. Let's review the progress on the AI Meeting Summarizer project.
+
+Sreeja: The search functionality and meeting history dashboard have been completed and tested.
+
+Rahul: I tested the save meeting feature. The SQLite database integration is working correctly.
+
+Ananya: I worked on the email summary feature. Users can now send generated meeting summaries directly via email.
+
+Utkarsh: Great. Are there any pending tasks?
+
+Sreeja: We need to improve the UI and perform final testing before the demo.
+
+Rahul: We should also prepare project documentation and deployment instructions.
+
+Utkarsh: Agreed. Let's finalize everything by Friday.
+
+Decisions:
+- The current version will be used for the internship demo.
+- Deployment will be optional and not part of the core deliverable.
+
+Action Items:
+- Sreeja will complete UI polishing.
+- Rahul will perform end-to-end testing.
+- Ananya will verify email functionality.
+- Utkarsh will prepare the final presentation.
+
+Next Steps:
+- Complete testing.
+- Review documentation.
+- Conduct a demo rehearsal before submission.
+
+Meeting concluded.
