@@ -4,6 +4,7 @@ import os
 from processor import process_video
 from database import save_meeting
 from database import init_db
+from database import get_all_meetings, search_meetings  # NEW
 
 init_db()
 
@@ -34,9 +35,14 @@ if "filename" not in st.session_state:
 def upload_page():
     st.title("Upload Meeting Recording")
 
+    # 🔥 NEW: Go to history
+    if st.button("📜 View Meeting History"):
+        st.session_state.page = "history"
+        st.rerun()
+
     uploaded_file = st.file_uploader(
         "Choose your meeting file",
-        type=["mp3", "wav", "mp4",  "txt"]
+        type=["mp3", "wav", "mp4", "txt"]
     )
 
     if uploaded_file:
@@ -123,7 +129,7 @@ def results_page():
         for step in result.get("next_steps", []):
             st.write(f"• {step}")
 
-    # Download as JSON
+    # Download + Save
     st.divider()
 
     col1, col2, col3 = st.columns([1, 1, 4])
@@ -150,6 +156,47 @@ def results_page():
             else:
                 st.error("Cannot save empty summary.")
 
+
+# -----------------------------
+# PAGE 3: HISTORY PAGE (NEW)
+# -----------------------------
+def history_page():
+    st.title("📜 Meeting History")
+
+    # Back button
+    if st.button("⬅ Back"):
+        st.session_state.page = "upload"
+        st.rerun()
+
+    st.divider()
+
+    # 🔍 Search
+    st.subheader("🔍 Search Meetings")
+    search_query = st.text_input("Enter keyword")
+
+    if search_query:
+        meetings = search_meetings(search_query)
+    else:
+        meetings = get_all_meetings()
+
+    if len(meetings) == 0:
+        st.info("No meetings found.")
+        return
+
+    st.subheader("📂 Saved Meetings")
+
+    for meeting in meetings:
+        meeting_id, filename, created_at, overview, summary_json = meeting
+
+        with st.expander(f"{filename} | {created_at}"):
+
+            st.write("**Overview:**")
+            st.write(overview)
+
+            if st.button("View Full Details", key=f"view_{meeting_id}"):
+                st.json(json.loads(summary_json))
+
+
 # -----------------------------
 # ROUTING
 # -----------------------------
@@ -159,10 +206,13 @@ if st.session_state.page == "upload":
 elif st.session_state.page == "results":
     results_page()
 
+elif st.session_state.page == "history":
+    history_page()
+
 
 # -----------------------------
 # ERROR DISPLAY (SAFE)
 # -----------------------------
 if st.session_state.error:
     st.error(st.session_state.error)
-    st.session_state.error = None  # prevent infinite loop
+    st.session_state.error = None

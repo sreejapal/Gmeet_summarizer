@@ -47,3 +47,36 @@ def save_meeting(filename, result):
 if __name__ == "__main__":
     init_db()
     print("Database initialized")
+
+def get_all_meetings():
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    SELECT id, filename, created_at, overview, summary_json
+    FROM meetings
+    ORDER BY created_at DESC
+    """)
+
+    rows = cursor.fetchall()
+    conn.close()
+
+    return rows
+
+def search_meetings(keyword):
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+
+    query = f"%{keyword}%"
+
+    cursor.execute("""
+    SELECT id, filename, created_at, overview, summary_json
+    FROM meetings
+    WHERE filename LIKE ? OR overview LIKE ? OR summary_json LIKE ?
+    ORDER BY created_at DESC
+    """, (query, query, query))
+
+    rows = cursor.fetchall()
+    conn.close()
+
+    return rows
