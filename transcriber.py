@@ -45,5 +45,4 @@ def transcribe_video(video_path):
         return result.get("text", "")
 
     except Exception as e:
-        print(f"Transcription error: {e}")
-        return ""
+        raise e

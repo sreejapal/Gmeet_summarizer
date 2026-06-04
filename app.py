@@ -5,6 +5,10 @@ from processor import process_video
 from database import init_db, save_meeting, delete_meeting, get_all_meetings, search_meetings
 from email_sender import send_summary_email
 
+os.makedirs("uploads", exist_ok=True)
+os.makedirs("transcripts", exist_ok=True)
+os.makedirs("summaries", exist_ok=True)
+
 # ─────────────────────────────────────────────
 #  CONFIG
 # ─────────────────────────────────────────────
