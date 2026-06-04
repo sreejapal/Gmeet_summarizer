@@ -1,4 +1,4 @@
-# AI Meeting Summarizer
+# MeetGenie
 
 An AI-powered meeting summarization system that processes Google Meet recordings or transcripts, generates structured meeting summaries, extracts action items and decisions, stores meeting archives, provides search functionality, and sends summaries via email.
 
