@@ -4,7 +4,7 @@ import json
 import os
 
 
-def process_video(video_path):
+def process_video(video_path, meeting_name):
     # Route .txt files directly — ffmpeg cannot read them,
     # which caused transcribe_video() to return "" and all
     # summary fields to come back empty.

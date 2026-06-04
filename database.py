@@ -25,19 +25,24 @@ def init_db():
 
 def save_meeting(filename, result):
 
-    conn = sqlite3.connect(DB_NAME)
+    from datetime import datetime
 
+    conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
+
+    # ✅ Add timestamp
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     cursor.execute("""
     INSERT INTO meetings
-    (filename, overview, summary_json)
-    VALUES (?, ?, ?)
+    (filename, overview, summary_json, created_at)
+    VALUES (?, ?, ?, ?)
     """,
     (
         filename,
         result.get("overview", ""),
-        json.dumps(result)
+        json.dumps(result),
+        timestamp   # ✅ new field
     ))
 
     conn.commit()

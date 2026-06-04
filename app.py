@@ -34,6 +34,8 @@ def upload_page():
         st.session_state.page = "history"
         st.rerun()
 
+    meeting_name = st.text_input("Enter Meeting Name")
+
     uploaded_file = st.file_uploader(
         "Choose your meeting file",
         type=["mp3", "wav", "mp4", "txt"]
@@ -41,11 +43,15 @@ def upload_page():
 
     if uploaded_file:
         st.success("File uploaded successfully!")
-        st.session_state.filename = uploaded_file.name
+        st.session_state.filename = meeting_name.strip()
 
     if st.button("Generate Summary"):
         if uploaded_file is None:
             st.warning("Please upload a file first!")
+            return
+
+        if not meeting_name.strip():
+            st.warning("Please enter a meeting name!")
             return
 
         try:
