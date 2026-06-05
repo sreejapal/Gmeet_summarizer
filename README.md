@@ -1,13 +1,44 @@
-# MeetGenie
+# MeetGenie - AI Meeting Intelligence Platform
 
-An AI-powered meeting summarization system that processes Google Meet recordings or transcripts, generates structured meeting summaries, extracts action items and decisions, stores meeting archives, provides search functionality, and sends summaries via email.
+🚀 **Live Demo:** https://meetgenie.streamlit.app
+
+MeetGenie is an AI-powered meeting intelligence platform that transforms meeting recordings and transcripts into structured, actionable insights. It automatically generates summaries, extracts key discussion points, identifies action items and decisions, assigns tasks, stores meeting archives, and enables email sharing of reports.
+
+---
+
+## Overview
+
+MeetGenie helps teams save time by eliminating manual note-taking and meeting documentation. Simply upload a meeting recording or transcript, and the platform will generate a comprehensive meeting report within seconds.
+
+### Key Benefits
+
+* Automatic meeting transcription
+* AI-generated summaries
+* Action item extraction
+* Decision tracking
+* Task assignment detection
+* Meeting history and search
+* Email report sharing
+* Cloud-based accessibility
+
+---
+
+## Live Deployment
+
+The application is deployed and accessible online via Streamlit Cloud.
+
+**Live Application:**
+https://meetgenie.streamlit.app
+
+No local installation is required for end users.
+
+---
 
 ## Features
 
 ### Meeting Processing
 
-* Upload meeting recordings (`.mp4`, `.mp3`, `.wav`)
-* Upload meeting transcripts (`.txt`)
+* Upload meeting recordings/transcripts (`.mp4`, `.mp3`, `.wav`, `.txt`)
 * Automatic speech-to-text transcription using Whisper
 * AI-powered meeting summarization using Gemini
 
@@ -23,15 +54,35 @@ An AI-powered meeting summarization system that processes Google Meet recordings
 ### Meeting Archive
 
 * Save meeting summaries to SQLite database
-* View meeting history
+* Maintain meeting history
 * Search previously saved meetings
 * Download summaries as JSON
 
 ### Email Integration
 
-* Send generated summaries via email
-* Gmail App Password authentication
-* One-click email delivery
+* Send meeting summaries directly via email
+* Share reports with stakeholders
+* Gmail SMTP integration
+
+### Cloud Access
+
+* Accessible from any browser
+* Deployed on Streamlit Cloud
+* Continuous deployment through GitHub
+
+---
+
+## Supported Input Formats
+
+### Audio / Video
+
+* MP4
+* MP3
+* WAV
+
+### Text
+
+* TXT
 
 ---
 
@@ -56,14 +107,40 @@ An AI-powered meeting summarization system that processes Google Meet recordings
 
 ### Email Service
 
-* Gmail SMTP using Yagmail
+* Gmail SMTP
+* Yagmail
+
+---
+
+## System Architecture
+
+```text
+User Upload
+      │
+      ▼
+Whisper Transcription
+      │
+      ▼
+Gemini Analysis
+      │
+      ▼
+Structured Summary Generation
+      │
+      ▼
+SQLite Storage
+      │
+      ├── Meeting History
+      ├── Search
+      ├── Email Reports
+      └── JSON Download
+```
 
 ---
 
 ## Project Structure
 
 ```text
-gmeet-ai-summarizer/
+MeetGenie/
 │
 ├── app.py
 ├── processor.py
@@ -72,15 +149,12 @@ gmeet-ai-summarizer/
 ├── database.py
 ├── email_sender.py
 │
-├── uploads/
-├── transcripts/
-├── summaries/
-│
-├── meetings.db
 ├── requirements.txt
-├── .env
+├── packages.txt
 ├── .gitignore
-└── README.md
+├── README.md
+│
+└── meetings.db
 ```
 
 ---
@@ -90,27 +164,23 @@ gmeet-ai-summarizer/
 ### 1. Clone Repository
 
 ```bash
-git clone <repository-url>
-cd gmeet-ai-summarizer
+git clone https://github.com/sreejapal/Gmeet_summarizer.git
+cd Gmeet_summarizer
 ```
 
 ### 2. Create Virtual Environment
 
+Windows:
+
 ```bash
 python -m venv venv
-```
-
-Activate:
-
-Windows
-
-```bash
 venv\Scripts\activate
 ```
 
-Mac/Linux
+Mac/Linux:
 
 ```bash
+python3 -m venv venv
 source venv/bin/activate
 ```
 
@@ -122,13 +192,15 @@ pip install -r requirements.txt
 
 ---
 
-## FFmpeg Installation
+## FFmpeg Setup
 
-Whisper requires FFmpeg.
+Whisper requires FFmpeg for audio processing.
 
 ### Windows
 
-Download FFmpeg and add the `bin` folder to your system PATH.
+Download FFmpeg:
+
+https://ffmpeg.org/download.html
 
 Verify installation:
 
@@ -140,7 +212,7 @@ ffmpeg -version
 
 ## Environment Variables
 
-Create a `.env` file in the project root.
+Create a `.env` file:
 
 ```env
 GEMINI_API_KEY=your_gemini_api_key
@@ -150,34 +222,38 @@ EMAIL_PASSWORD=your_gmail_app_password
 
 ### Gemini API Key
 
-Create an API key from:
+Generate an API key from:
 
-https://aistudio.google.com
+https://aistudio.google.com/
 
 ### Gmail App Password
 
-1. Enable 2-Step Verification
-2. Open Google App Passwords
-3. Generate a Mail App Password
-4. Use the generated password in `.env`
+1. Enable Two-Step Verification
+2. Open Google Account → Security
+3. Create an App Password
+4. Add it to the `.env` file
 
 ---
 
-## Running the Application
+## Running Locally
 
 ```bash
 streamlit run app.py
 ```
 
-The application will open in your browser.
+Application will start at:
+
+```text
+http://localhost:8501
+```
 
 ---
 
 ## Usage
 
-### Upload Meeting Recording
+### Upload Recording
 
-Supported formats:
+Supported:
 
 * MP4
 * MP3
@@ -185,67 +261,102 @@ Supported formats:
 
 ### Upload Transcript
 
-Supported formats:
+Supported:
 
 * TXT
 
 ### Generate Summary
 
-The system will:
+The platform automatically:
 
-1. Transcribe audio/video (if required)
-2. Generate AI summary
-3. Extract action items
-4. Extract decisions
-5. Extract task assignments
+1. Transcribes audio/video
+2. Analyzes content using Gemini
+3. Generates structured meeting insights
 
 ### Save Meeting
 
-Click **Save Meeting** to store the summary in SQLite.
+Click:
+
+```text
+Save Meeting
+```
+
+to store the summary in the database.
 
 ### Search Meetings
 
-Use the search feature to locate previous meeting summaries.
+Use the Search feature to retrieve previous meeting reports.
 
 ### Send Email
 
 1. Enter recipient email
-2. Click **Send Summary Email**
-3. Summary will be delivered automatically
-
----
-
-## Database
-
-Meeting summaries are stored in:
-
-```text
-meetings.db
-```
-
-Stored information:
-
-* Filename
-* Timestamp
-* Overview
-* Full Summary JSON
+2. Click Send Summary Email
+3. Report is delivered instantly
 
 ---
 
 ## Example Workflow
 
 ```text
-Upload File
-      ↓
-Transcription
-      ↓
-AI Summary Generation
-      ↓
-Review Summary
-      ↓
-Save Meeting
-      ↓
-Search Archive
-      ↓
-Email Summary
+Upload Meeting Recording
+          │
+          ▼
+Audio Transcription
+          │
+          ▼
+AI Analysis
+          │
+          ▼
+Meeting Summary
+          │
+          ▼
+Save Report
+          │
+          ├── Search
+          ├── History
+          ├── Download
+          └── Email
+```
+
+---
+
+## Database Schema
+
+Meetings are stored in SQLite.
+
+Stored Data:
+
+* Meeting ID
+* Filename
+* Timestamp
+* Meeting Overview
+* Full Summary JSON
+
+Database File:
+
+```text
+meetings.db
+```
+
+---
+
+## Deployment
+
+### Platform
+
+Streamlit Cloud
+
+### Deployment Process
+
+```text
+GitHub Push
+      │
+      ▼
+Streamlit Cloud
+      │
+      ▼
+Automatic Build
+      │
+      ▼
+Live Application Update
 ```
