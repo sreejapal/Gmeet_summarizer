@@ -28,11 +28,6 @@ st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
 
-/* ─────────────────────────────────────────
-   DESIGN TOKENS
-   Single source of truth for all colors.
-   Changing these propagates everywhere.
-───────────────────────────────────────── */
 :root {
     --bg-base:         #0f1117;
     --bg-surface:      #141720;
@@ -54,25 +49,12 @@ st.markdown("""
     --font-mono:       'DM Mono', monospace;
 }
 
-/* ─────────────────────────────────────────
-   GLOBAL RESET
-   Forces dark base on every element.
-   Uses attribute selectors which are more
-   reliable than [class*="css"] and survive
-   Streamlit's hashed class name changes.
-───────────────────────────────────────── */
 html, body {
     font-family: var(--font-body) !important;
     background-color: var(--bg-base) !important;
     color: var(--text-primary) !important;
 }
 
-/* ─────────────────────────────────────────
-   APP SHELL
-   data-testid selectors are stable across
-   Streamlit versions — they come from the
-   component source, not the CSS pipeline.
-───────────────────────────────────────── */
 [data-testid="stApp"] {
     background-color: var(--bg-base) !important;
     color: var(--text-primary) !important;
@@ -97,15 +79,8 @@ html, body {
     background-color: var(--bg-base) !important;
 }
 
-/* ── Hide default Streamlit chrome ── */
 #MainMenu, footer, header { visibility: hidden; }
-
-/* ─────────────────────────────────────────
-   TYPOGRAPHY
-   Force text color on all Streamlit text
-   elements so light-mode defaults never
-   bleed through.
-───────────────────────────────────────── */
+            
 [data-testid="stMarkdown"],
 [data-testid="stMarkdownContainer"],
 [data-testid="stText"] {
@@ -126,19 +101,10 @@ html, body {
     font-family: var(--font-body) !important;
 }
 
-/* ─────────────────────────────────────────
-   DIVIDER
-───────────────────────────────────────── */
 hr {
     border-color: var(--border) !important;
 }
 
-/* ─────────────────────────────────────────
-   TEXT INPUT
-   Targets the root element, label, and
-   inner input separately using testid.
-   No fragile nesting depth (> div > div).
-───────────────────────────────────────── */
 [data-testid="stTextInput"],
 [data-testid="stTextInputRootElement"] {
     background-color: transparent !important;
@@ -167,12 +133,6 @@ hr {
     outline: none !important;
 }
 
-/* ─────────────────────────────────────────
-   FILE UPLOADER
-   The dropzone uses theme.colors.secondaryBg
-   which is white in light mode. Override
-   every layer by testid.
-───────────────────────────────────────── */
 [data-testid="stFileUploader"] {
     background-color: transparent !important;
 }
@@ -190,7 +150,6 @@ hr {
     color: var(--text-muted) !important;
 }
 
-/* File chip (after upload) */
 [data-testid="stFileChip"] {
     background-color: var(--bg-surface-2) !important;
     border-color: var(--border) !important;
@@ -200,13 +159,6 @@ hr {
     color: var(--text-secondary) !important;
 }
 
-/* ─────────────────────────────────────────
-   BUTTONS
-   Secondary buttons: dark bg, light text.
-   Primary buttons: accent bg (Streamlit
-   already handles using primaryColor from
-   config.toml, but we ensure bg/text).
-───────────────────────────────────────── */
 [data-testid="stButton"] button,
 [data-testid="stDownloadButton"] button {
     border-radius: 8px !important;
@@ -216,7 +168,6 @@ hr {
     transition: all 0.15s ease !important;
 }
 
-/* Secondary / default buttons — force dark style */
 [data-testid="stButton"] button[kind="secondary"],
 [data-testid="stButton"] button:not([kind="primary"]):not([kind="tertiary"]),
 [data-testid="stDownloadButton"] button[kind="secondary"],
@@ -234,16 +185,12 @@ hr {
     color: var(--text-primary) !important;
 }
 
-/* Primary buttons already use primaryColor from config.toml.
-   Ensure text is always white against the accent bg. */
 [data-testid="stButton"] button[kind="primary"] {
+    background-color: #ff4b4b !important;
+    border-color: #ff4b4b !important;
     color: #ffffff !important;
 }
 
-/* ─────────────────────────────────────────
-   ALERTS  (success / warning / error / info)
-   Both the container and the text inside.
-───────────────────────────────────────── */
 [data-testid="stAlert"],
 [data-testid="stAlertContainer"] {
     border-radius: 8px !important;
@@ -251,18 +198,10 @@ hr {
     font-family: var(--font-body) !important;
 }
 
-/* Keep alert backgrounds dark-tinted so they
-   don't show as the Streamlit default white blocks */
 [data-testid="stAlertContainer"][data-baseweb="notification"] {
     background-color: var(--bg-surface) !important;
 }
 
-/* ─────────────────────────────────────────
-   EXPANDER
-   The old .streamlit-expanderHeader class no
-   longer exists in Streamlit ≥1.30. Use the
-   confirmed data-testid selectors instead.
-───────────────────────────────────────── */
 [data-testid="stExpander"] {
     background-color: var(--bg-surface) !important;
     border: 1px solid var(--border) !important;
@@ -283,19 +222,12 @@ hr {
     border-top: 1px solid var(--border) !important;
 }
 
-/* ─────────────────────────────────────────
-   SPINNER
-───────────────────────────────────────── */
+
 [data-testid="stSpinner"] p,
 [data-testid="stSpinner"] span {
     color: var(--text-muted) !important;
 }
 
-/* ─────────────────────────────────────────
-   SIDEBAR
-   Collapsed by default but must be dark
-   if the user ever opens it.
-───────────────────────────────────────── */
 [data-testid="stSidebar"],
 [data-testid="stSidebarContent"] {
     background-color: var(--bg-surface) !important;
@@ -306,9 +238,6 @@ hr {
     color: var(--text-primary) !important;
 }
 
-/* ─────────────────────────────────────────
-   SCROLLBAR
-───────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg-base); }
 ::-webkit-scrollbar-thumb {
@@ -317,21 +246,10 @@ hr {
 }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
 
-/* ─────────────────────────────────────────
-   COLUMNS
-───────────────────────────────────────── */
 [data-testid="stColumn"] {
     background-color: transparent !important;
 }
 
-/* ─────────────────────────────────────────
-   CUSTOM HTML COMPONENTS
-   These are rendered via st.markdown() with
-   unsafe_allow_html=True, so they are plain
-   HTML — not Streamlit widgets. They are
-   always dark because we hard-code colors
-   in the markup. Listed here for reference.
-───────────────────────────────────────── */
 
 /* Nav bar */
 .nav-bar {
@@ -343,7 +261,7 @@ hr {
     margin-bottom: 36px;
 }
 .nav-logo {
-    font-size: 20px;
+    font-size: 26px;
     font-weight: 600;
     letter-spacing: -0.4px;
     color: #ffffff;
@@ -494,17 +412,13 @@ hr {
 </style>
 """, unsafe_allow_html=True)
 
-# ─────────────────────────────────────────────
 #  SESSION STATE
-# ─────────────────────────────────────────────
 for key, default in [("page", "upload"), ("result", None), ("error", None), ("filename", None)]:
     if key not in st.session_state:
         st.session_state[key] = default
 
 
-# ─────────────────────────────────────────────
 #  HELPERS
-# ─────────────────────────────────────────────
 def nav_bar(current_page):
     page_labels = {"upload": "New Meeting", "results": "Summary", "history": "History"}
     label = page_labels.get(current_page, "")
@@ -514,7 +428,6 @@ def nav_bar(current_page):
         <div class="nav-tag">{label}</div>
     </div>
     """, unsafe_allow_html=True)
-
 
 def section_card(title, items, icon=""):
     if not items:
@@ -545,9 +458,7 @@ def stat_badges(result):
     st.markdown(f'<div class="stat-row">{badges}</div>', unsafe_allow_html=True)
 
 
-# ─────────────────────────────────────────────
 #  PAGE 1 — UPLOAD
-# ─────────────────────────────────────────────
 def upload_page():
     nav_bar("upload")
 
@@ -622,9 +533,7 @@ def upload_page():
         st.session_state.error = None
 
 
-# ─────────────────────────────────────────────
 #  PAGE 2 — RESULTS
-# ─────────────────────────────────────────────
 def results_page():
     nav_bar("results")
 
@@ -707,9 +616,7 @@ def results_page():
                     st.error(f"Failed to send email: {e}")
 
 
-# ─────────────────────────────────────────────
 #  PAGE 3 — HISTORY
-# ─────────────────────────────────────────────
 def history_page():
     nav_bar("history")
 
@@ -777,8 +684,6 @@ def history_page():
         st.markdown('<div style="height:4px"></div>', unsafe_allow_html=True)
 
 
-# ─────────────────────────────────────────────
 #  ROUTER
-# ─────────────────────────────────────────────
 pages = {"upload": upload_page, "results": results_page, "history": history_page}
 pages.get(st.session_state.page, upload_page)()
