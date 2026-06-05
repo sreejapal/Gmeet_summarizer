@@ -9,9 +9,7 @@ os.makedirs("uploads", exist_ok=True)
 os.makedirs("transcripts", exist_ok=True)
 os.makedirs("summaries", exist_ok=True)
 
-# ─────────────────────────────────────────────
 #  CONFIG
-# ─────────────────────────────────────────────
 init_db()
 
 st.set_page_config(
@@ -21,12 +19,11 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# ─────────────────────────────────────────────
 #  CUSTOM CSS
-# ─────────────────────────────────────────────
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+
 
 :root {
     --bg-base:         #0f1117;
@@ -55,6 +52,7 @@ html, body {
     color: var(--text-primary) !important;
 }
 
+
 [data-testid="stApp"] {
     background-color: var(--bg-base) !important;
     color: var(--text-primary) !important;
@@ -80,17 +78,19 @@ html, body {
 }
 
 #MainMenu, footer, header { visibility: hidden; }
-            
+
+
 [data-testid="stMarkdown"],
 [data-testid="stMarkdownContainer"],
 [data-testid="stText"] {
     color: var(--text-primary) !important;
 }
 
-[data-testid="stMarkdown"] p,
-[data-testid="stMarkdown"] li,
-[data-testid="stMarkdown"] span {
-    color: inherit !important;
+[data-testid="stMarkdown"] > div > p,
+[data-testid="stMarkdown"] > div > ul,
+[data-testid="stMarkdown"] > div > ol,
+[data-testid="stMarkdown"] > div > li {
+    color: var(--text-primary) !important;
 }
 
 [data-testid="stWidgetLabel"],
@@ -104,6 +104,7 @@ html, body {
 hr {
     border-color: var(--border) !important;
 }
+
 
 [data-testid="stTextInput"],
 [data-testid="stTextInputRootElement"] {
@@ -159,6 +160,7 @@ hr {
     color: var(--text-secondary) !important;
 }
 
+
 [data-testid="stButton"] button,
 [data-testid="stDownloadButton"] button {
     border-radius: 8px !important;
@@ -167,7 +169,7 @@ hr {
     font-size: 14px !important;
     transition: all 0.15s ease !important;
 }
-
+            
 [data-testid="stButton"] button[kind="secondary"],
 [data-testid="stButton"] button:not([kind="primary"]):not([kind="tertiary"]),
 [data-testid="stDownloadButton"] button[kind="secondary"],
@@ -222,7 +224,6 @@ hr {
     border-top: 1px solid var(--border) !important;
 }
 
-
 [data-testid="stSpinner"] p,
 [data-testid="stSpinner"] span {
     color: var(--text-muted) !important;
@@ -261,12 +262,12 @@ hr {
     margin-bottom: 36px;
 }
 .nav-logo {
-    font-size: 26px;
-    font-weight: 600;
+    font-size: 28px !important;
+    font-weight: 700 !important;
     letter-spacing: -0.4px;
-    color: #ffffff;
+    color: #ffffff !important;
 }
-.nav-logo span { color: var(--accent); }
+.nav-logo span { color: #4f7cff !important; }
 .nav-tag {
     font-size: 11px;
     font-family: var(--font-mono);
@@ -428,6 +429,7 @@ def nav_bar(current_page):
         <div class="nav-tag">{label}</div>
     </div>
     """, unsafe_allow_html=True)
+
 
 def section_card(title, items, icon=""):
     if not items:
