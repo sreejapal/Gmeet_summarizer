@@ -2,6 +2,8 @@ from google import genai
 from dotenv import load_dotenv
 import os
 import json
+import time
+import hashlib
 
 load_dotenv()
 
@@ -17,8 +19,14 @@ EMPTY_SUMMARY = {
     "next_steps": []
 }
 
+# 🔹 Simple in-memory cache
+cache = {}
 
-def split_transcript(text, max_words=1500):
+def get_cache_key(text):
+    return hashlib.md5(text.encode()).hexdigest()
+
+
+def split_transcript(text, max_words=2500):  # ⬅️ slightly bigger chunks
     words = text.split()
     if not words:
         return []
@@ -33,7 +41,42 @@ def safe_json_parse(text):
         return None
 
 
-def summarize_chunk(chunk):
+# 🔹 NEW: retry wrapper
+def generate_with_retry(prompt, retries=2):  # ⬅️ reduce retries
+    for attempt in range(retries):
+        try:
+            print(f"🚀 API call attempt {attempt+1}")
+            return client.models.generate_content(
+                model=MODEL_NAME,
+                contents=prompt
+            )
+
+        except Exception as e:
+            error_str = str(e)
+            print(f"[ERROR] {error_str}")
+
+            # 🔴 If quota exceeded → STOP immediately
+            if "429" in error_str:
+                print("❌ Quota exceeded. Skipping retries.")
+                return None
+
+            # 🟡 If server busy → retry ONCE quickly
+            if "503" in error_str:
+                wait_time = 10   # ⬅️ was 40+, now fast
+                print(f"⏳ Server busy. Retrying in {wait_time}s...")
+                time.sleep(wait_time)
+            else:
+                break
+
+    return None
+
+
+# 🔹 KEEP FUNCTION NAME (minimal change), but now does batching instead of per-chunk calls
+def summarize_chunk(chunks):
+    combined_text = "\n\n".join(
+        [f"PART {i+1}:\n{chunk}" for i, chunk in enumerate(chunks)]
+    )
+
     prompt = f"""You are a strict JSON generator.
 
 Return ONLY valid JSON. No explanation.
@@ -48,20 +91,27 @@ Format:
   "next_steps": []
 }}
 
-Transcript:
-{chunk}"""
+Rules:
+- Merge all parts into ONE coherent summary
+- Remove duplicates
+- Be concise
+- Extract clear actions and decisions
 
-    try:
-        response = client.models.generate_content(model=MODEL_NAME, contents=prompt)
+Transcript:
+{combined_text}
+"""
+
+    response = generate_with_retry(prompt)
+
+    if response:
         parsed = safe_json_parse(response.text)
         if parsed:
             return parsed
-    except Exception as e:
-        print(f"[ERROR] summarize_chunk: {type(e).__name__}: {e}")
 
     return EMPTY_SUMMARY.copy()
 
 
+# 🔹 KEEP (not really needed now, but leaving for minimal change safety)
 def merge_summaries(summaries):
     merged = {key: [] for key in EMPTY_SUMMARY}
     merged["overview"] = ""
@@ -72,33 +122,9 @@ def merge_summaries(summaries):
     return merged
 
 
+# 🔹 KEEP NAME but simplify (no extra API call now)
 def refine_summary(merged):
-    prompt = f"""Clean and refine the following meeting summary.
-
-Remove duplicates. Make it clear and concise.
-
-Return ONLY valid JSON in this format:
-{{
-  "overview": "",
-  "discussion_points": [],
-  "action_items": [],
-  "decisions": [],
-  "task_assignments": [],
-  "next_steps": []
-}}
-
-Data:
-{json.dumps(merged)}"""
-
-    try:
-        response = client.models.generate_content(model=MODEL_NAME, contents=prompt)
-        parsed = safe_json_parse(response.text)
-        if parsed:
-            return parsed
-    except Exception as e:
-        print(f"[ERROR] refine_summary: {type(e).__name__}: {e}")
-
-    return merged
+    return merged  # ⬅️ no second API call
 
 
 def generate_summary(transcript):
@@ -109,9 +135,29 @@ def generate_summary(transcript):
         }
 
     try:
+        # 🔹 CACHE CHECK
+        key = get_cache_key(transcript)
+        if key in cache:
+            print("⚡ Using cached result")
+            return cache[key]
+
+        # 🔹 Step 1: Split
         chunks = split_transcript(transcript)
-        summaries = [summarize_chunk(chunk) for chunk in chunks]
-        merged = merge_summaries(summaries)
-        return refine_summary(merged)
+
+        # 🔹 Step 2: HARD LIMIT (VERY IMPORTANT)
+        MAX_CHUNKS = 3
+        chunks = chunks[:MAX_CHUNKS]
+
+        # 🔹 Step 3: ONE API CALL (via summarize_chunk)
+        summary = summarize_chunk(chunks)
+
+        # 🔹 Step 4: (no-op refine)
+        final = refine_summary(summary)
+
+        # 🔹 SAVE CACHE
+        cache[key] = final
+
+        return final
+
     except Exception as e:
         return {**EMPTY_SUMMARY, "overview": f"Error: {str(e)}"}

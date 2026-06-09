@@ -4,6 +4,7 @@ import os
 from processor import process_video
 from database import init_db, save_meeting, delete_meeting, get_all_meetings, search_meetings
 from email_sender import send_summary_email
+from pdf_exporter import generate_summary_pdf
 
 os.makedirs("uploads", exist_ok=True)
 os.makedirs("transcripts", exist_ok=True)
@@ -519,7 +520,7 @@ def upload_page():
                 <li>Upload your meeting recording or paste a transcript (.txt)</li>
                 <li>Whisper transcribes audio files automatically</li>
                 <li>Gemini AI extracts key insights, action items and decisions</li>
-                <li>Download the summary as JSON or email it directly</li>
+                <li>Download the summary as PDF or email it directly</li>
             </ul>
         </div>
         """, unsafe_allow_html=True)
@@ -542,7 +543,7 @@ def results_page():
     result = st.session_state.result
     if not result:
         st.error("No summary data found. Please go back and process a meeting.")
-        if st.button("← Back"):
+        if st.button("← Back", key="results_back"):
             st.session_state.page = "upload"
             st.rerun()
         return
@@ -554,7 +555,7 @@ def results_page():
         st.markdown(f'<div class="page-title">{name}</div>', unsafe_allow_html=True)
     with btn_col:
         st.markdown("<br>", unsafe_allow_html=True)
-        if st.button("← New Meeting", use_container_width=True):
+        if st.button("← New Meeting", use_container_width=True, key="new_meeting_btn"):
             st.session_state.page = "upload"
             st.session_state.result = None
             st.rerun()
@@ -562,7 +563,7 @@ def results_page():
     # Stats row
     stat_badges(result)
 
-    # Overview — full width
+    # Overview
     overview = result.get("overview", "").strip()
     st.markdown(f"""
     <div class="overview-card">
@@ -571,7 +572,7 @@ def results_page():
     </div>
     """, unsafe_allow_html=True)
 
-    # Detail grid — 3 columns
+    # Detail grid
     c1, c2, c3 = st.columns(3)
     with c1:
         section_card("Key Discussion Points", result.get("discussion_points", []), "🔑")
@@ -582,32 +583,45 @@ def results_page():
     with c3:
         section_card("Next Steps", result.get("next_steps", []), "➡️")
 
-        # Save + Download stacked in right column
         st.markdown("<br>", unsafe_allow_html=True)
-        if st.button("Save to History", use_container_width=True):
+
+        # Save button
+        if st.button("Save to History", use_container_width=True, key="save_history_btn"):
             if overview:
                 save_meeting(st.session_state.filename, result)
                 st.success("Meeting saved successfully.")
             else:
                 st.error("Cannot save a summary with no overview.")
 
+        # PDF download
+        pdf_bytes = generate_summary_pdf(
+            result,
+            st.session_state.filename or "Meeting Summary"
+        )
+
         st.download_button(
-            "Download JSON",
-            data=json.dumps(result, indent=4),
-            file_name="meeting_summary.json",
-            mime="application/json",
+            "⬇ Download PDF",
+            data=bytes(pdf_bytes),
+            file_name=f"{(st.session_state.filename or 'meeting').replace(' ', '_')}_summary.pdf",
+            mime="application/pdf",
+            key="download_pdf_results",
             use_container_width=True
         )
 
-    # Email section
+    # ✅ SINGLE Email section (fixed)
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown("---")
+
     email_col, btn_col = st.columns([3, 1])
     with email_col:
-        email = st.text_input("Send summary via email", placeholder="recipient@example.com", label_visibility="visible")
+        email = st.text_input(
+            "Send summary via email",
+            placeholder="recipient@example.com",
+            key="results_email"   # 🔥 FIX
+        )
     with btn_col:
         st.markdown("<br>", unsafe_allow_html=True)
-        if st.button("Send Email →", use_container_width=True):
+        if st.button("Send Email →", use_container_width=True, key="send_email_btn"):
             if not email:
                 st.warning("Please enter a recipient email address.")
             else:
@@ -617,8 +631,7 @@ def results_page():
                 except Exception as e:
                     st.error(f"Failed to send email: {e}")
 
-
-#  PAGE 3 — HISTORY
+# PAGE 3 — HISTORY
 def history_page():
     nav_bar("history")
 
@@ -627,14 +640,36 @@ def history_page():
         st.markdown('<div class="page-title">Meeting History</div>', unsafe_allow_html=True)
     with back_col:
         st.markdown("<br>", unsafe_allow_html=True)
-        if st.button("← Back", use_container_width=True):
+        if st.button("← Back", use_container_width=True, key="history_back"):
             st.session_state.page = "upload"
             st.rerun()
 
-    search_query = st.text_input("", placeholder="🔍  Search meetings by name, keyword, or content…", label_visibility="collapsed")
+    # ✅ FIX 1 + 2: label + key added
+    search_query = st.text_input(
+        "Search meetings",
+        placeholder="🔍  Search meetings by name, keyword, or content…",
+        label_visibility="collapsed",
+        key="history_search"
+    )
+
     st.markdown("<br>", unsafe_allow_html=True)
 
     meetings = search_meetings(search_query) if search_query.strip() else get_all_meetings()
+
+    # ✅ TOTAL MEETINGS BOX
+    total_meetings = len(get_all_meetings())
+    st.markdown(f"""
+    <div style="
+        background-color:#1f2433;
+        padding:16px;
+        border-radius:10px;
+        margin-bottom:16px;
+        text-align:center;
+    ">
+        <div style="font-size:12px;color:#aab0c5;">Total Meetings</div>
+        <div style="font-size:24px;font-weight:bold;color:white;">{total_meetings}</div>
+    </div>
+    """, unsafe_allow_html=True)
 
     if not meetings:
         if search_query:
@@ -643,8 +678,16 @@ def history_page():
             st.info("No meetings saved yet. Process a meeting and click **Save to History**.")
         return
 
-    count_label = f"{len(meetings)} meeting{'s' if len(meetings) != 1 else ''} found" if search_query else f"{len(meetings)} saved meeting{'s' if len(meetings) != 1 else ''}"
-    st.markdown(f'<div style="font-size:12px;color:#4a5068;font-family:DM Mono,monospace;margin-bottom:16px;">{count_label}</div>', unsafe_allow_html=True)
+    count_label = (
+        f"{len(meetings)} meeting{'s' if len(meetings) != 1 else ''} found"
+        if search_query
+        else f"{len(meetings)} saved meeting{'s' if len(meetings) != 1 else ''}"
+    )
+
+    st.markdown(
+        f'<div style="font-size:12px;color:#4a5068;font-family:DM Mono,monospace;margin-bottom:16px;">{count_label}</div>',
+        unsafe_allow_html=True
+    )
 
     for meeting in meetings:
         meeting_id, filename, created_at, overview, summary_json = meeting
@@ -658,10 +701,18 @@ def history_page():
         """, unsafe_allow_html=True)
 
         detail_col, del_col = st.columns([5, 1])
+
         with detail_col:
             with st.expander("View full summary"):
-                parsed = json.loads(summary_json)
+
+                # ✅ FIX 3: safe parsing (prevents crash)
+                try:
+                    parsed = json.loads(summary_json)
+                except:
+                    parsed = {}
+
                 section_card("Overview", [parsed.get("overview", "")], "📄")
+
                 ec1, ec2 = st.columns(2)
                 with ec1:
                     section_card("Discussion Points", parsed.get("discussion_points", []), "🔑")
@@ -669,15 +720,19 @@ def history_page():
                 with ec2:
                     section_card("Decisions", parsed.get("decisions", []), "📌")
                     section_card("Task Assignments", parsed.get("task_assignments", []), "👥")
+
                 section_card("Next Steps", parsed.get("next_steps", []), "➡️")
 
+                pdf_bytes = generate_summary_pdf(parsed, filename or "Meeting Summary")
+
                 st.download_button(
-                    "⬇  Download JSON",
-                    data=json.dumps(parsed, indent=4),
-                    file_name=f"{filename or 'meeting'}_summary.json",
-                    mime="application/json",
-                    key=f"dl_{meeting_id}"
+                    "⬇ Download PDF",
+                    data=bytes(pdf_bytes),  # ✅ already correct
+                    file_name=f"{(filename or 'meeting').replace(' ', '_')}_summary.pdf",
+                    mime="application/pdf",
+                    key=f"pdf_{meeting_id}"
                 )
+
         with del_col:
             if st.button("🗑", key=f"del_{meeting_id}", help="Delete this meeting"):
                 delete_meeting(meeting_id)
@@ -686,6 +741,13 @@ def history_page():
         st.markdown('<div style="height:4px"></div>', unsafe_allow_html=True)
 
 
-#  ROUTER
-pages = {"upload": upload_page, "results": results_page, "history": history_page}
-pages.get(st.session_state.page, upload_page)()
+#  MAIN APP ROUTING
+if __name__ == "__main__":
+    page = st.session_state.get("page", "upload")
+    
+    if page == "upload":
+        upload_page()
+    elif page == "results":
+        results_page()
+    elif page == "history":
+        history_page()

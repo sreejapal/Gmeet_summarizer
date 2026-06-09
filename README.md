@@ -56,7 +56,7 @@ No local installation is required for end users.
 * Save meeting summaries to SQLite database
 * Maintain meeting history
 * Search previously saved meetings
-* Download summaries as JSON
+* Download summaries as PDF
 
 ### Email Integration
 
@@ -132,7 +132,7 @@ SQLite Storage
       ├── Meeting History
       ├── Search
       ├── Email Reports
-      └── JSON Download
+      └── PDF Download
 ```
 
 ---
