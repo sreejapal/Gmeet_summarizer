@@ -1,0 +1,37 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# App data
+uploads/
+transcripts/
+summaries/
+meetings.db
+*.db
+*.sqlite3
+
+# Secrets
+.env
+.env.*
+
+# Git & editor
+.git/
+.gitignore
+.vscode/
+
+# System
+.DS_Store
+
+# FFmpeg (local)
+ffmpeg/
+
+# Logs & temp
+*.log
+*.tmp
+*.bak
+
+# Node (just in case)
+node_modules/
