@@ -11,7 +11,14 @@ SECTIONS = [
 
 
 def _safe(text):
-    return str(text or "").encode("latin-1", "replace").decode("latin-1")
+    return (
+        str(text or "")
+        .replace("•", "-")
+        .replace("—", "-")
+        .replace("–", "-")
+        .encode("latin-1", "replace")
+        .decode("latin-1")
+    )
 
 
 def _add_wrapped_text(pdf, text, size=11, bold=False):
@@ -38,7 +45,7 @@ def _add_bullet_list(pdf, items):
         pdf.multi_cell(
             0,
             6,
-            f"• {text}"
+            f"- {text}"
         )
 
         pdf.ln(1)
