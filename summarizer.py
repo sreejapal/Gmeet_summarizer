@@ -55,12 +55,10 @@ def generate_with_retry(prompt, retries=2):  # ⬅️ reduce retries
             error_str = str(e)
             print(f"[ERROR] {error_str}")
 
-            # 🔴 If quota exceeded → STOP immediately
             if "429" in error_str:
                 print("❌ Quota exceeded. Skipping retries.")
                 return None
 
-            # 🟡 If server busy → retry ONCE quickly
             if "503" in error_str:
                 wait_time = 10   # ⬅️ was 40+, now fast
                 print(f"⏳ Server busy. Retrying in {wait_time}s...")
@@ -70,8 +68,6 @@ def generate_with_retry(prompt, retries=2):  # ⬅️ reduce retries
 
     return None
 
-
-# 🔹 KEEP FUNCTION NAME (minimal change), but now does batching instead of per-chunk calls
 def summarize_chunk(chunks):
     combined_text = "\n\n".join(
         [f"PART {i+1}:\n{chunk}" for i, chunk in enumerate(chunks)]
@@ -111,7 +107,6 @@ Transcript:
     return EMPTY_SUMMARY.copy()
 
 
-# 🔹 KEEP (not really needed now, but leaving for minimal change safety)
 def merge_summaries(summaries):
     merged = {key: [] for key in EMPTY_SUMMARY}
     merged["overview"] = ""
@@ -122,9 +117,8 @@ def merge_summaries(summaries):
     return merged
 
 
-# 🔹 KEEP NAME but simplify (no extra API call now)
 def refine_summary(merged):
-    return merged  # ⬅️ no second API call
+    return merged
 
 
 def generate_summary(transcript):
@@ -141,20 +135,15 @@ def generate_summary(transcript):
             print("⚡ Using cached result")
             return cache[key]
 
-        # 🔹 Step 1: Split
         chunks = split_transcript(transcript)
 
-        # 🔹 Step 2: HARD LIMIT (VERY IMPORTANT)
         MAX_CHUNKS = 3
         chunks = chunks[:MAX_CHUNKS]
 
-        # 🔹 Step 3: ONE API CALL (via summarize_chunk)
         summary = summarize_chunk(chunks)
 
-        # 🔹 Step 4: (no-op refine)
         final = refine_summary(summary)
 
-        # 🔹 SAVE CACHE
         cache[key] = final
 
         return final
